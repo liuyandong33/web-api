@@ -39,6 +39,10 @@ public class ApplicationHandler {
         return applicationContext.getBean(beanClass);
     }
 
+    public static <T> T getBean(String name, Class<T> beanClass) {
+        return applicationContext.getBean(name, beanClass);
+    }
+
     /**
      * 获取ServletRequestAttributes
      *

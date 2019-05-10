@@ -1,19 +1,25 @@
 package build.dream.web.auth;
 
 import build.dream.web.utils.RedisUtils;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
+import build.dream.web.utils.UniversalRedisUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.util.SerializationUtils;
 
 import java.util.*;
 
 public class SessionRegistryImpl implements SessionRegistry, ApplicationListener<SessionDestroyedEvent> {
     private static final String SESSION_INFORMATION_PREFIX = "_session_information";
     private static final String PRINCIPAL_PREFIX = "_principal";
+
+    private String obtainPrincipalKey(String username) {
+        return PRINCIPAL_PREFIX + "_" + username;
+    }
+
+    private String obtainSessionInformationKey(String sessionId) {
+        return SESSION_INFORMATION_PREFIX + "_" + sessionId;
+    }
 
     @Override
     public void onApplicationEvent(SessionDestroyedEvent event) {
@@ -29,7 +35,7 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
     @Override
     public List<SessionInformation> getAllSessions(Object principal, boolean includeExpiredSessions) {
         WebUserDetails webUserDetails = (WebUserDetails) principal;
-        Set<String> sessionsUsedByPrincipal = RedisUtils.smembers(PRINCIPAL_PREFIX + "_" + webUserDetails.getUsername());
+        Set<String> sessionsUsedByPrincipal = RedisUtils.smembers(obtainPrincipalKey(webUserDetails.getUsername()));
         if (sessionsUsedByPrincipal == null) {
             return Collections.emptyList();
         }
@@ -49,21 +55,19 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
 
     @Override
     public SessionInformation getSessionInformation(String sessionId) {
-        String key = SESSION_INFORMATION_PREFIX + "_" + sessionId;
-        String value = RedisUtils.get(key);
-        if (StringUtils.isNotBlank(value)) {
-            return (SessionInformation) SerializationUtils.deserialize(Base64.decodeBase64(value));
+        Object value = UniversalRedisUtils.get(obtainSessionInformationKey(sessionId));
+        if (value != null) {
+            return (SessionInformation) value;
         }
         return null;
     }
 
     @Override
     public void refreshLastRequest(String sessionId) {
-        String key = SESSION_INFORMATION_PREFIX + "_" + sessionId;
         SessionInformation sessionInformation = getSessionInformation(sessionId);
         if (sessionInformation != null) {
             sessionInformation.refreshLastRequest();
-            RedisUtils.set(key, Base64.encodeBase64String(SerializationUtils.serialize(sessionInformation)));
+            UniversalRedisUtils.set(obtainSessionInformationKey(sessionId), sessionInformation);
         }
     }
 
@@ -75,8 +79,8 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
         }
 
         SessionInformation sessionInformation = new SessionInformation(principal, sessionId, new Date());
-        RedisUtils.set(SESSION_INFORMATION_PREFIX + "_" + sessionId, Base64.encodeBase64String(SerializationUtils.serialize(sessionInformation)));
-        RedisUtils.sadd(PRINCIPAL_PREFIX + "_" + webUserDetails.getUsername(), sessionId);
+        UniversalRedisUtils.set(obtainSessionInformationKey(sessionId), sessionInformation);
+        RedisUtils.sadd(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
     }
 
     @Override
@@ -86,9 +90,9 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
             return;
         }
 
-        RedisUtils.delete(SESSION_INFORMATION_PREFIX + "_" + sessionId);
+        RedisUtils.delete(obtainPrincipalKey(sessionId));
 
         WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
-        RedisUtils.srem(PRINCIPAL_PREFIX + "_" + webUserDetails.getUsername(), sessionId);
+        RedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()) + "_" + webUserDetails.getUsername(), sessionId);
     }
 }
