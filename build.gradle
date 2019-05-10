@@ -1,0 +1,44 @@
+group "build.dream"
+version "0.1.0"
+
+buildscript {
+    ext {
+        springBootVersion = "2.0.0.RELEASE"
+        projectName = "web-api"
+    }
+    repositories {
+        mavenLocal()
+        maven { url "${mavenPublicRepositoryUrl}" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: "java"
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+apply plugin: "idea"
+apply plugin: "war"
+
+repositories {
+    mavenLocal()
+    maven { url "${mavenPublicRepositoryUrl}" }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-security")
+    compile("org.springframework.boot:spring-boot-starter-data-redis")
+    compile("org.springframework.session:spring-session-data-redis")
+    compile("org.apache.tomcat.embed:tomcat-embed-jasper")
+    compile("commons-codec:commons-codec:1.10")
+    compile("net.sf.json-lib:json-lib:2.4:jdk15")
+    compile("com.networknt:json-schema-validator:0.1.13")
+    compile("org.jsoup:jsoup:1.11.2")
+    compile("org.apache.commons:commons-math3:3.6.1")
+}
