@@ -90,9 +90,9 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
             return;
         }
 
-        RedisUtils.delete(obtainPrincipalKey(sessionId));
+        RedisUtils.delete(obtainSessionInformationKey(sessionId));
 
         WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
-        RedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()) + "_" + webUserDetails.getUsername(), sessionId);
+        RedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
     }
 }

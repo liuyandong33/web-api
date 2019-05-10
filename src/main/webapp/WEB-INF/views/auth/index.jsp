@@ -12,7 +12,7 @@
     <script type="text/javascript" src="http://www.smartpos.top/lib/jquery/jquery.1.11.3.min.js"></script>
     <script type="text/javascript">
         function login() {
-            $.post("/login/login", {username: "admin", password: "123456", loginMode: "PASSWORD"}, function (result) {
+            $.post("/auth/login", {username: "admin", password: "123456", loginMode: "PASSWORD"}, function (result) {
                 alert(result);
             }, "text");
         }
@@ -20,7 +20,7 @@
 </head>
 <body>
 
-    <form method="post" action="/login/login">
+    <form method="post" action="/auth/login">
         用户名：<input type="text" name="username"><br><br>
         密码： <input type="password" name="password"><br><br>
         登录方式：

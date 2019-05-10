@@ -1,10 +1,14 @@
 package build.dream.web.configurations;
 
 import build.dream.web.auth.SessionRegistryImpl;
+import build.dream.web.auth.WebFilterInvocationSecurityMetadataSource;
 import build.dream.web.auth.WebUserDetailsService;
+import build.dream.web.constants.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +22,15 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -39,12 +52,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .headers().disable()
                 .authorizeRequests()
-                .antMatchers("/auth/index", "/auth/login", "/login/login", "/login/logout", "/auth/failure").permitAll()
+                .antMatchers("/auth/index", "/auth/login", "/auth/logout").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin().loginPage("/auth/index").loginProcessingUrl("/login/login").successHandler(authenticationSuccessHandler).failureHandler(authenticationFailureHandler)
+                .formLogin().loginPage("/auth/index").loginProcessingUrl("/auth/login").successHandler(authenticationSuccessHandler).failureHandler(authenticationFailureHandler)
                 .and()
-                .logout().logoutUrl("/login/logout").invalidateHttpSession(true).logoutSuccessUrl("/auth/index")
+                .logout().logoutUrl("/auth/logout").invalidateHttpSession(true).logoutSuccessUrl("/auth/index")
                 .and()
                 .sessionManagement().invalidSessionStrategy(invalidSessionStrategy).maximumSessions(1).maxSessionsPreventsLogin(true).expiredSessionStrategy(sessionInformationExpiredStrategy).sessionRegistry(sessionRegistry());
     }
@@ -75,5 +88,38 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    private AntPathRequestMatcher buildAntPathRequestMatcher(String pattern) {
+        return new AntPathRequestMatcher(pattern);
+    }
+
+    private List<ConfigAttribute> buildPermitAllConfigAttributes() {
+        List<ConfigAttribute> configAttributes = new ArrayList<ConfigAttribute>();
+        configAttributes.add(new SecurityConfig(Constants.PERMIT_ALL));
+        return configAttributes;
+    }
+
+    private List<ConfigAttribute> buildAuthenticatedConfigAttributes() {
+        List<ConfigAttribute> configAttributes = new ArrayList<ConfigAttribute>();
+        configAttributes.add(new SecurityConfig(Constants.AUTHENTICATED));
+        return configAttributes;
+    }
+
+    private List<ConfigAttribute> buildHasAuthorityConfigAttributes(String privilegeCode) {
+        List<ConfigAttribute> configAttributes = new ArrayList<ConfigAttribute>();
+        configAttributes.add(new SecurityConfig(String.format(Constants.HAS_AUTHORITY_FORMAT, privilegeCode)));
+        return configAttributes;
+    }
+
+    @Bean
+    public WebFilterInvocationSecurityMetadataSource webFilterInvocationSecurityMetadataSource() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>> requestMap = new LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>>();
+        requestMap.put(buildAntPathRequestMatcher("/auth/index"), buildPermitAllConfigAttributes());
+        requestMap.put(buildAntPathRequestMatcher("/auth/login"), buildPermitAllConfigAttributes());
+        requestMap.put(buildAntPathRequestMatcher("/auth/logout"), buildPermitAllConfigAttributes());
+        requestMap.put(AnyRequestMatcher.INSTANCE, buildAuthenticatedConfigAttributes());
+
+        return new WebFilterInvocationSecurityMetadataSource(requestMap);
     }
 }
