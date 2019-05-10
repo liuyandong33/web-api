@@ -33,6 +33,7 @@ configurations.all {
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-security")
+    compile("org.springframework.security:spring-security-taglibs:5.0.3.RELEASE")
     compile("org.springframework.boot:spring-boot-starter-data-redis")
     compile("org.springframework.session:spring-session-data-redis")
     compile("org.mybatis.spring.boot:mybatis-spring-boot-starter:2.0.0")
