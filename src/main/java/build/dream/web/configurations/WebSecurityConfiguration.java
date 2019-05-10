@@ -118,6 +118,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         requestMap.put(buildAntPathRequestMatcher("/auth/index"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/login"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/logout"), buildPermitAllConfigAttributes());
+        requestMap.put(buildAntPathRequestMatcher("/admin/index"), buildHasAuthorityConfigAttributes("admin"));
+        requestMap.put(buildAntPathRequestMatcher("/user/index"), buildHasAuthorityConfigAttributes("user"));
         requestMap.put(AnyRequestMatcher.INSTANCE, buildAuthenticatedConfigAttributes());
 
         return new WebFilterInvocationSecurityMetadataSource(requestMap);

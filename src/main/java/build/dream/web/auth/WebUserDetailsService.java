@@ -6,6 +6,7 @@ import build.dream.web.utils.RedisUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,7 +35,13 @@ public class WebUserDetailsService implements UserDetailsService {
             password = passwordEncoder.encode(verificationCode);
         }
 
-        Collection<? extends GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+
+        if ("admin".equals(username)) {
+            authorities.add(new SimpleGrantedAuthority("admin"));
+        } else if ("user".equals(username)) {
+            authorities.add(new SimpleGrantedAuthority("user"));
+        }
 
         WebUserDetails webUserDetails = new WebUserDetails();
         webUserDetails.setUsername(username);
