@@ -10,6 +10,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class WebSecurityUtils {
     public static void authorize(String principal) {
@@ -17,10 +18,10 @@ public class WebSecurityUtils {
     }
 
     public static void authorize(String principal, String credentials) {
-        authorize(principal, credentials, ApplicationHandler.getHttpServletRequest());
+        authorize(principal, credentials, ApplicationHandler.getHttpServletRequest(), ApplicationHandler.getHttpServletResponse());
     }
 
-    public static void authorize(String principal, String credentials, HttpServletRequest httpServletRequest) {
+    public static void authorize(String principal, String credentials, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         WebApplicationContext webApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(httpServletRequest.getServletContext());
 
         AuthenticationManager authenticationManager = webApplicationContext.getBean(AuthenticationManager.class);

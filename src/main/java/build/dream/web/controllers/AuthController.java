@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.Map;
 
@@ -28,12 +29,13 @@ public class AuthController {
     public String login() {
         try {
             HttpServletRequest httpServletRequest = ApplicationHandler.getHttpServletRequest();
+            HttpServletResponse httpServletResponse = ApplicationHandler.getHttpServletResponse();
             Map<String, String> requestParameters = ApplicationHandler.getRequestParameters(httpServletRequest);
 
             String loginName = requestParameters.get("loginName");
             String password = requestParameters.get("password");
 
-            WebSecurityUtils.authorize(loginName, password, httpServletRequest);
+            WebSecurityUtils.authorize(loginName, password, httpServletRequest, httpServletResponse);
 
             return Constants.SUCCESS;
         } catch (Exception e) {
