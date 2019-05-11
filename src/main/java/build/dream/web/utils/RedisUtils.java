@@ -380,6 +380,12 @@ public class RedisUtils {
         return obtainStringRedisTemplate().expireAt(key, date);
     }
 
+    /**
+     * HDEL
+     * @param key
+     * @param fields
+     * @return
+     */
     public static Long hdel(String key, String... fields) {
         return obtainHashOperations().delete(key, fields);
     }
@@ -1269,7 +1275,7 @@ public class RedisUtils {
      * @return
      */
     public static Long decrBy(byte[] key, long value) {
-        return obtainStringRedisTemplate().execute((RedisCallback<Long>) connection -> connection.decr(key));
+        return obtainStringRedisTemplate().execute((RedisCallback<Long>) connection -> connection.decrBy(key, value));
     }
 
     /**
@@ -1291,7 +1297,7 @@ public class RedisUtils {
      * @param end
      * @return
      */
-    public static byte[] getRange(byte[] key, long start, long end) {
+    public static byte[] getrange(byte[] key, long start, long end) {
         return obtainStringRedisTemplate().execute((RedisCallback<byte[]>) connection -> connection.getRange(key, start, end));
     }
 
@@ -1448,14 +1454,14 @@ public class RedisUtils {
     }
 
     /**
-     * HINCRBY
+     * HINCRBYFLOAT
      *
      * @param key
      * @param field
      * @param delta
      * @return
      */
-    public static Double hincrby(byte[] key, byte[] field, double delta) {
+    public static Double hincrbyfloat(byte[] key, byte[] field, double delta) {
         return obtainStringRedisTemplate().execute((RedisCallback<Double>) connection -> connection.hIncrBy(key, field, delta));
     }
 
