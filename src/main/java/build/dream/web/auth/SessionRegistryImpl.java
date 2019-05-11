@@ -92,7 +92,7 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
             return;
         }
 
-        RedisUtils.del(obtainSessionInformationKey(sessionId));
+        RedisUtils.del(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
 
         WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
         RedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
