@@ -1,7 +1,7 @@
 package build.dream.web.auth;
 
+import build.dream.common.utils.RedisUtils;
 import build.dream.web.constants.Constants;
-import build.dream.web.utils.RedisUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.SerializationUtils;
 import org.springframework.context.ApplicationListener;

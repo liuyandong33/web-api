@@ -1,6 +1,6 @@
 package build.dream.web.listeners;
 
-import build.dream.web.utils.ApplicationHandler;
+import build.dream.common.utils.ApplicationHandler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 

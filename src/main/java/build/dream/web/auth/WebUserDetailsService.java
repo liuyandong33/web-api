@@ -1,8 +1,8 @@
 package build.dream.web.auth;
 
+import build.dream.common.utils.ApplicationHandler;
+import build.dream.common.utils.RedisUtils;
 import build.dream.web.constants.Constants;
-import build.dream.web.utils.ApplicationHandler;
-import build.dream.web.utils.RedisUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

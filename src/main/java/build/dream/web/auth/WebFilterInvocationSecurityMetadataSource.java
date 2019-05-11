@@ -1,6 +1,6 @@
 package build.dream.web.auth;
 
-import build.dream.web.utils.WebSecurityUtils;
+import build.dream.common.utils.WebSecurityUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
