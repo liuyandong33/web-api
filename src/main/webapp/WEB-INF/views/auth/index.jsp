@@ -6,7 +6,6 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
     <title>登录页面</title>
@@ -29,22 +28,21 @@
     </script>
 </head>
 <body>
-<security:authorize access="hasAuthority('admin')">admin</security:authorize>
-<security:authorize access="hasAuthority('user')">user</security:authorize>
-<form method="post" action="/auth/login">
-    用户名：<input type="text" id="username" name="username"><br><br>
-    密码： <input type="password" id="password" name="password"><br><br>
-    登录方式：
-    <select name="loginMode" id="loginMode">
-        <option value="PASSWORD">密码</option>
-        <option value="SMS_VERIFICATION_CODE">短信验证码</option>
-    </select><br><br>
-    <input type="submit" value="登录">
-</form>
 
-<button onclick="login()">Ajax登录</button>
+<div style="text-align: center;">
+    <form method="post" action="/auth/login">
+        用户名：<input type="text" id="username" name="username"><br><br>
+        密码： <input type="password" id="password" name="password"><br><br>
+        登录方式：
+        <select name="loginMode" id="loginMode">
+            <option value="PASSWORD">密码</option>
+            <option value="SMS_VERIFICATION_CODE">短信验证码</option>
+        </select><br><br>
+        <input type="submit" value="登录">
+    </form>
 
-<div style="background-color: yellow;height: 50px;text-align: center;padding-top: 10px;">没有权限</div>
+    <button onclick="login()">Ajax登录</button>
+</div>
 
 </body>
 </html>
