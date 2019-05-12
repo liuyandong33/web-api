@@ -32,4 +32,12 @@ public class PrivilegeService {
         }
         return ApiRest.builder().data(zTreeNodes).message("获取后台权限列表成功！").successful(true).build();
     }
+
+    @Transactional(readOnly = true)
+    public List<BackgroundPrivilege> obtainAllBackgroundPrivileges() {
+        SearchModel searchModel = new SearchModel(true);
+        searchModel.addSearchCondition("service_name", Constants.SQL_OPERATION_SYMBOL_EQUAL, Constants.SERVICE_NAME_WEBAPI);
+        List<BackgroundPrivilege> backgroundPrivileges = DatabaseHelper.findAll(BackgroundPrivilege.class, searchModel);
+        return backgroundPrivileges;
+    }
 }

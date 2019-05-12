@@ -1,9 +1,11 @@
 package build.dream.webapi.configurations;
 
+import build.dream.common.saas.domains.BackgroundPrivilege;
 import build.dream.webapi.auth.SessionRegistryImpl;
 import build.dream.webapi.auth.WebFilterInvocationSecurityMetadataSource;
 import build.dream.webapi.auth.WebUserDetailsService;
 import build.dream.webapi.constants.Constants;
+import build.dream.webapi.services.PrivilegeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -45,6 +48,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private AuthenticationSuccessHandler authenticationSuccessHandler;
     @Autowired
     private AuthenticationFailureHandler authenticationFailureHandler;
+    @Autowired
+    private AccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private PrivilegeService privilegeService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -59,7 +66,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout().logoutUrl("/auth/logout").invalidateHttpSession(true).logoutSuccessUrl("/auth/index")
                 .and()
-                .sessionManagement().invalidSessionStrategy(invalidSessionStrategy).maximumSessions(1).maxSessionsPreventsLogin(true).expiredSessionStrategy(sessionInformationExpiredStrategy).sessionRegistry(sessionRegistry());
+                .sessionManagement().invalidSessionStrategy(invalidSessionStrategy).maximumSessions(1).maxSessionsPreventsLogin(true).expiredSessionStrategy(sessionInformationExpiredStrategy).sessionRegistry(sessionRegistry())
+                .and()
+                .and()
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
     }
 
     @Bean
@@ -120,6 +130,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         requestMap.put(buildAntPathRequestMatcher("/auth/logout"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/admin/index"), buildHasAuthorityConfigAttributes("admin"));
         requestMap.put(buildAntPathRequestMatcher("/user/index"), buildHasAuthorityConfigAttributes("user"));
+
+        List<BackgroundPrivilege> backgroundPrivileges = privilegeService.obtainAllBackgroundPrivileges();
+
         requestMap.put(AnyRequestMatcher.INSTANCE, buildAuthenticatedConfigAttributes());
 
         return new WebFilterInvocationSecurityMetadataSource(requestMap);
