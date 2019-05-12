@@ -6,6 +6,7 @@ import build.dream.webapi.auth.WebFilterInvocationSecurityMetadataSource;
 import build.dream.webapi.auth.WebUserDetailsService;
 import build.dream.webapi.constants.Constants;
 import build.dream.webapi.services.PrivilegeService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -104,6 +105,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new AntPathRequestMatcher(pattern);
     }
 
+    private AntPathRequestMatcher buildAntPathRequestMatcher(String controllerName, String actionName) {
+        return new AntPathRequestMatcher("/" + controllerName + "/" + actionName);
+    }
+
     private List<ConfigAttribute> buildPermitAllConfigAttributes() {
         List<ConfigAttribute> configAttributes = new ArrayList<ConfigAttribute>();
         configAttributes.add(new SecurityConfig(Constants.PERMIT_ALL));
@@ -128,10 +133,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         requestMap.put(buildAntPathRequestMatcher("/auth/index"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/login"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/logout"), buildPermitAllConfigAttributes());
-        requestMap.put(buildAntPathRequestMatcher("/admin/index"), buildHasAuthorityConfigAttributes("admin"));
-        requestMap.put(buildAntPathRequestMatcher("/user/index"), buildHasAuthorityConfigAttributes("user"));
 
         List<BackgroundPrivilege> backgroundPrivileges = privilegeService.obtainAllBackgroundPrivileges();
+        for (BackgroundPrivilege backgroundPrivilege : backgroundPrivileges) {
+            String controllerName = backgroundPrivilege.getControllerName();
+            String actionName = backgroundPrivilege.getActionName();
+            if (StringUtils.isNotBlank(controllerName) && StringUtils.isNotBlank(actionName)) {
+                requestMap.put(buildAntPathRequestMatcher(controllerName, actionName), buildHasAuthorityConfigAttributes(backgroundPrivilege.getPrivilegeCode()));
+            }
+        }
 
         requestMap.put(AnyRequestMatcher.INSTANCE, buildAuthenticatedConfigAttributes());
 

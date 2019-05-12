@@ -3,6 +3,7 @@ package build.dream.webapi.auth;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigInteger;
 import java.util.Collection;
 
 public class WebUserDetails implements UserDetails {
@@ -13,6 +14,7 @@ public class WebUserDetails implements UserDetails {
     private boolean accountNonLocked = true;
     private boolean credentialsNonExpired = true;
     private boolean enabled = true;
+    private BigInteger userId;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -75,6 +77,14 @@ public class WebUserDetails implements UserDetails {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public BigInteger getUserId() {
+        return userId;
+    }
+
+    public void setUserId(BigInteger userId) {
+        this.userId = userId;
     }
 
     @Override
