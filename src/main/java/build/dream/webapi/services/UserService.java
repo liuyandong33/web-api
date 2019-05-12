@@ -18,6 +18,10 @@ public class UserService {
         return systemUserMapper.findByLoginNameOrEmailOrMobile(loginName);
     }
 
+    public SystemUser findByMobile(String loginName) {
+        return systemUserMapper.findByMobile(loginName);
+    }
+
     public List<BackgroundPrivilege> findAllBackgroundPrivileges(BigInteger userId) {
         return systemUserMapper.findAllBackgroundPrivileges(userId);
     }

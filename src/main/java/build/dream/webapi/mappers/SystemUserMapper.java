@@ -12,5 +12,7 @@ import java.util.List;
 public interface SystemUserMapper {
     SystemUser findByLoginNameOrEmailOrMobile(@Param("loginName") String loginName);
 
+    SystemUser findByMobile(@Param("mobile") String mobile);
+
     List<BackgroundPrivilege> findAllBackgroundPrivileges(@Param("userId") BigInteger userId);
 }

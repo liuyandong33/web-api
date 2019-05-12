@@ -33,6 +33,7 @@ configurations.all {
 dependencies {
     compile("build.dream:lib-common:0.1.0-SNAPSHOT")
     compile("org.scala-lang:scala-library:2.12.5")
+    compile("org.springframework.boot:spring-boot-devtools")
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-security")
     compile("org.springframework.security:spring-security-taglibs:5.0.3.RELEASE")

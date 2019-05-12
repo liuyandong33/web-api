@@ -2,7 +2,10 @@ package build.dream.webapi.auth;
 
 import build.dream.common.saas.domains.BackgroundPrivilege;
 import build.dream.common.saas.domains.SystemUser;
+import build.dream.common.utils.ApplicationHandler;
+import build.dream.common.utils.RedisUtils;
 import build.dream.common.utils.ValidateUtils;
+import build.dream.webapi.constants.Constants;
 import build.dream.webapi.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,11 +30,26 @@ public class WebUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        SystemUser systemUser = userService.findByLoginNameOrEmailOrMobile(username);
-        ValidateUtils.notNull(systemUser, "用户不存在！");
+        String loginMode = ApplicationHandler.getRequestParameter(Constants.LOGIN_MODE);
+
+        String password = null;
+        SystemUser systemUser = null;
+        if (Constants.LOGIN_MODE_PASSWORD.equalsIgnoreCase(loginMode)) {
+            systemUser = userService.findByLoginNameOrEmailOrMobile(username);
+            ValidateUtils.notNull(systemUser, "用户不存在！");
+
+            password = systemUser.getPassword();
+        } else if (Constants.LOGIN_MODE_SMS_VERIFICATION_CODE.equalsIgnoreCase(loginMode)) {
+            systemUser = userService.findByMobile(username);
+            ValidateUtils.notNull(systemUser, "用户不存在！");
+
+            String verificationCode = RedisUtils.get(username);
+            ValidateUtils.notNull(verificationCode, "验证码已过期！");
+
+            password = passwordEncoder.encode(verificationCode);
+        }
 
         BigInteger userId = systemUser.getId();
-
         Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         List<BackgroundPrivilege> backgroundPrivileges = userService.findAllBackgroundPrivileges(userId);
         for (BackgroundPrivilege backgroundPrivilege : backgroundPrivileges) {
@@ -40,7 +58,7 @@ public class WebUserDetailsService implements UserDetailsService {
 
         WebUserDetails webUserDetails = new WebUserDetails();
         webUserDetails.setUsername(username);
-        webUserDetails.setPassword(systemUser.getPassword());
+        webUserDetails.setPassword(password);
         webUserDetails.setAuthorities(authorities);
         webUserDetails.setUserId(userId);
         return webUserDetails;
