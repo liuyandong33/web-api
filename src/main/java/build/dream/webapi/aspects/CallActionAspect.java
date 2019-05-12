@@ -100,7 +100,7 @@ public class CallActionAspect {
         return apiRest;
     }
 
-    @Around(value = "execution(public * build.dream.platform.controllers.*.*(..)) && @annotation(modelAndViewAction)")
+    @Around(value = "execution(public * build.dream.webapi.controllers.*.*(..)) && @annotation(modelAndViewAction)")
     public Object callModelAndViewAction(ProceedingJoinPoint proceedingJoinPoint, ModelAndViewAction modelAndViewAction) {
         Map<String, String> requestParameters = ApplicationHandler.getRequestParameters();
         Object returnValue = null;
