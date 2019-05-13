@@ -7,6 +7,7 @@ import build.dream.common.utils.CommonRedisUtils;
 import build.dream.common.utils.ValidateUtils;
 import build.dream.webapi.constants.Constants;
 import build.dream.webapi.services.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,7 +35,7 @@ public class WebUserDetailsService implements UserDetailsService {
 
         String password = null;
         SystemUser systemUser = null;
-        if (Constants.LOGIN_MODE_PASSWORD.equalsIgnoreCase(loginMode)) {
+        if (Constants.LOGIN_MODE_PASSWORD.equalsIgnoreCase(loginMode) || StringUtils.isBlank(loginMode)) {
             systemUser = userService.findByLoginNameOrEmailOrMobile(username);
             ValidateUtils.notNull(systemUser, "用户不存在！");
 

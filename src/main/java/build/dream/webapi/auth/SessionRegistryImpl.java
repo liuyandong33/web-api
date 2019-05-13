@@ -12,15 +12,15 @@ import org.springframework.security.core.session.SessionRegistry;
 import java.util.*;
 
 public class SessionRegistryImpl implements SessionRegistry, ApplicationListener<SessionDestroyedEvent> {
-    private static final String SESSION_INFORMATION_PREFIX = "_session_information";
-    private static final String PRINCIPAL_PREFIX = "_principal";
+    private static final String SESSION_INFORMATION_PREFIX = "_session_information_";
+    private static final String PRINCIPAL_PREFIX = "_principal_";
 
     private String obtainPrincipalKey(String username) {
-        return PRINCIPAL_PREFIX + "_" + username;
+        return PRINCIPAL_PREFIX + username;
     }
 
     private String obtainSessionInformationKey(String sessionId) {
-        return SESSION_INFORMATION_PREFIX + "_" + sessionId;
+        return SESSION_INFORMATION_PREFIX + sessionId;
     }
 
     @Override

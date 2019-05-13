@@ -1,6 +1,7 @@
 package build.dream.webapi.configurations;
 
 import build.dream.common.saas.domains.BackgroundPrivilege;
+import build.dream.webapi.auth.RedisTokenRepository;
 import build.dream.webapi.auth.SessionRegistryImpl;
 import build.dream.webapi.auth.WebFilterInvocationSecurityMetadataSource;
 import build.dream.webapi.auth.WebUserDetailsService;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
@@ -30,6 +32,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.sql.DataSource;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +56,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private AccessDeniedHandler accessDeniedHandler;
     @Autowired
     private PrivilegeService privilegeService;
+    @Autowired
+    private DataSource dataSource;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -70,7 +75,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionManagement().invalidSessionStrategy(invalidSessionStrategy).maximumSessions(1).maxSessionsPreventsLogin(true).expiredSessionStrategy(sessionInformationExpiredStrategy).sessionRegistry(sessionRegistry())
                 .and()
                 .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler)
+                .and()
+                .rememberMe()
+                .tokenValiditySeconds(60 * 60 * 24 * 7)
+                .userDetailsService(userDetailsService())
+                .tokenRepository(tokenRepository());
     }
 
     @Bean
@@ -147,5 +157,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         requestMap.put(AnyRequestMatcher.INSTANCE, buildAuthenticatedConfigAttributes());
 
         return new WebFilterInvocationSecurityMetadataSource(requestMap);
+    }
+
+    @Bean
+    public PersistentTokenRepository tokenRepository() {
+        RedisTokenRepository redisTokenRepository = new RedisTokenRepository();
+        return redisTokenRepository;
     }
 }
