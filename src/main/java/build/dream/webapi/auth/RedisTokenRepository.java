@@ -4,17 +4,19 @@ import build.dream.common.utils.CommonRedisUtils;
 import build.dream.common.utils.CustomDateUtils;
 import build.dream.webapi.constants.Constants;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class RedisTokenRepository implements PersistentTokenRepository {
     private static final String REMEMBER_ME_TOKEN_PREFIX = "_remember_me_token_";
     private static final String REMEMBER_ME_SERIES_PREFIX = "_remember_me_series_";
+    private static final long TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7;
 
     private String obtainRememberMeKey(String series) {
         return REMEMBER_ME_TOKEN_PREFIX + series;
@@ -28,7 +30,8 @@ public class RedisTokenRepository implements PersistentTokenRepository {
     public void createNewToken(PersistentRememberMeToken token) {
         String series = token.getSeries();
         String username = token.getUsername();
-        String key = obtainRememberMeKey(series);
+        String tokenKey = obtainRememberMeKey(series);
+        String seriesKey = obtainRememberMeSeriesKey(username);
 
         Map<String, String> tokenMap = new HashMap<String, String>();
         tokenMap.put("username", username);
@@ -36,19 +39,22 @@ public class RedisTokenRepository implements PersistentTokenRepository {
         tokenMap.put("token", token.getTokenValue());
         tokenMap.put("last_used", CustomDateUtils.format(token.getDate(), Constants.DEFAULT_DATE_PATTERN));
 
-        CommonRedisUtils.hmset(key, tokenMap);
-        CommonRedisUtils.sadd(obtainRememberMeSeriesKey(username), key);
+        CommonRedisUtils.hmset(tokenKey, tokenMap);
+        CommonRedisUtils.expire(tokenKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
+        CommonRedisUtils.setex(seriesKey, tokenKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
     public void updateToken(String series, String tokenValue, Date lastUsed) {
-        String key = obtainRememberMeKey(series);
-        Map<String, String> tokenMap = CommonRedisUtils.hgetAll(key);
+        String tokenKey = obtainRememberMeKey(series);
+        Map<String, String> tokenMap = CommonRedisUtils.hgetAll(tokenKey);
 
         tokenMap.put("token", tokenValue);
         tokenMap.put("last_used", CustomDateUtils.format(lastUsed, Constants.DEFAULT_DATE_PATTERN));
 
-        CommonRedisUtils.hmset(obtainRememberMeKey(series), tokenMap);
+        CommonRedisUtils.hmset(tokenKey, tokenMap);
+        CommonRedisUtils.expire(tokenKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
+        CommonRedisUtils.expire(obtainRememberMeSeriesKey(tokenMap.get("username")), TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
@@ -66,9 +72,12 @@ public class RedisTokenRepository implements PersistentTokenRepository {
 
     @Override
     public void removeUserTokens(String username) {
-        String key = obtainRememberMeSeriesKey(username);
-        Set<String> keys = CommonRedisUtils.smembers(key);
-        keys.add(key);
-        CommonRedisUtils.del(keys.toArray(new String[]{}));
+        String seriesKey = obtainRememberMeSeriesKey(username);
+        String tokenKey = CommonRedisUtils.get(seriesKey);
+        if (StringUtils.isBlank(tokenKey)) {
+            CommonRedisUtils.del(seriesKey);
+        } else {
+            CommonRedisUtils.del(seriesKey, tokenKey);
+        }
     }
 }
