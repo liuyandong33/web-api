@@ -3,7 +3,7 @@ package build.dream.webapi.auth;
 import build.dream.common.saas.domains.BackgroundPrivilege;
 import build.dream.common.saas.domains.SystemUser;
 import build.dream.common.utils.ApplicationHandler;
-import build.dream.common.utils.RedisUtils;
+import build.dream.common.utils.CommonRedisUtils;
 import build.dream.common.utils.ValidateUtils;
 import build.dream.webapi.constants.Constants;
 import build.dream.webapi.services.UserService;
@@ -44,7 +44,7 @@ public class WebUserDetailsService implements UserDetailsService {
             systemUser = userService.findByMobile(mobile);
             ValidateUtils.notNull(systemUser, "用户不存在！");
 
-            String verificationCode = RedisUtils.get(Constants.SMS_VERIFICATION_CODE_PREFIX + "_" + mobile);
+            String verificationCode = CommonRedisUtils.get(Constants.SMS_VERIFICATION_CODE_PREFIX + "_" + mobile);
             ValidateUtils.notNull(verificationCode, "验证码已过期！");
 
             password = passwordEncoder.encode(verificationCode);

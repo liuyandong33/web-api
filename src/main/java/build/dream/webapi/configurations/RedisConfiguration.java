@@ -1,9 +1,9 @@
 package build.dream.webapi.configurations;
 
-import build.dream.webapi.constants.Constants;
+import build.dream.common.constants.Constants;
+import build.dream.common.utils.RedisHelper;
 import build.dream.webapi.redis.CommonRedisProperties;
 import build.dream.webapi.redis.PartitionRedisProperties;
-import build.dream.webapi.utils.RedisHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

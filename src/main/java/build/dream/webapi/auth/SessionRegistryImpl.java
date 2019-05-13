@@ -1,6 +1,6 @@
 package build.dream.webapi.auth;
 
-import build.dream.common.utils.RedisUtils;
+import build.dream.common.utils.CommonRedisUtils;
 import build.dream.webapi.constants.Constants;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.SerializationUtils;
@@ -37,7 +37,7 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
     @Override
     public List<SessionInformation> getAllSessions(Object principal, boolean includeExpiredSessions) {
         WebUserDetails webUserDetails = (WebUserDetails) principal;
-        Set<String> sessionsUsedByPrincipal = RedisUtils.smembers(obtainPrincipalKey(webUserDetails.getUsername()));
+        Set<String> sessionsUsedByPrincipal = CommonRedisUtils.smembers(obtainPrincipalKey(webUserDetails.getUsername()));
         if (sessionsUsedByPrincipal == null) {
             return Collections.emptyList();
         }
@@ -57,7 +57,7 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
 
     @Override
     public SessionInformation getSessionInformation(String sessionId) {
-        byte[] value = RedisUtils.get(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
+        byte[] value = CommonRedisUtils.get(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
         if (ArrayUtils.isNotEmpty(value)) {
             return (SessionInformation) SerializationUtils.deserialize(value);
         }
@@ -69,7 +69,7 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
         SessionInformation sessionInformation = getSessionInformation(sessionId);
         if (sessionInformation != null) {
             sessionInformation.refreshLastRequest();
-            RedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
+            CommonRedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
         }
     }
 
@@ -81,8 +81,8 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
         }
 
         SessionInformation sessionInformation = new SessionInformation(principal, sessionId, new Date());
-        RedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
-        RedisUtils.sadd(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
+        CommonRedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
+        CommonRedisUtils.sadd(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
     }
 
     @Override
@@ -92,9 +92,9 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
             return;
         }
 
-        RedisUtils.del(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
+        CommonRedisUtils.del(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
 
         WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
-        RedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
+        CommonRedisUtils.srem(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
     }
 }
