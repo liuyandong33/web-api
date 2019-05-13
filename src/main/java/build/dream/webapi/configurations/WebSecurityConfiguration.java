@@ -133,6 +133,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         requestMap.put(buildAntPathRequestMatcher("/auth/index"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/login"), buildPermitAllConfigAttributes());
         requestMap.put(buildAntPathRequestMatcher("/auth/logout"), buildPermitAllConfigAttributes());
+        requestMap.put(buildAntPathRequestMatcher("/sms/sendVerificationCode"), buildPermitAllConfigAttributes());
 
         List<BackgroundPrivilege> backgroundPrivileges = privilegeService.obtainAllBackgroundPrivileges();
         for (BackgroundPrivilege backgroundPrivilege : backgroundPrivileges) {

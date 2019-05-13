@@ -40,10 +40,11 @@ public class WebUserDetailsService implements UserDetailsService {
 
             password = systemUser.getPassword();
         } else if (Constants.LOGIN_MODE_SMS_VERIFICATION_CODE.equalsIgnoreCase(loginMode)) {
-            systemUser = userService.findByMobile(username);
+            String mobile = username;
+            systemUser = userService.findByMobile(mobile);
             ValidateUtils.notNull(systemUser, "用户不存在！");
 
-            String verificationCode = RedisUtils.get(username);
+            String verificationCode = RedisUtils.get(Constants.SMS_VERIFICATION_CODE_PREFIX + "_" + mobile);
             ValidateUtils.notNull(verificationCode, "验证码已过期！");
 
             password = passwordEncoder.encode(verificationCode);
@@ -57,7 +58,7 @@ public class WebUserDetailsService implements UserDetailsService {
         }
 
         WebUserDetails webUserDetails = new WebUserDetails();
-        webUserDetails.setUsername(username);
+        webUserDetails.setUsername(systemUser.getLoginName());
         webUserDetails.setPassword(password);
         webUserDetails.setAuthorities(authorities);
         webUserDetails.setUserId(userId);

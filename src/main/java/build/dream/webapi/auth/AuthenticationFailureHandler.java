@@ -4,6 +4,7 @@ import build.dream.common.api.ApiRest;
 import build.dream.common.exceptions.Error;
 import build.dream.common.utils.ApplicationHandler;
 import build.dream.common.utils.GsonUtils;
+import build.dream.webapi.constants.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -21,7 +22,12 @@ public class AuthenticationFailureHandler implements org.springframework.securit
         String errorMessage = null;
 
         if (exception instanceof BadCredentialsException) {
-            errorMessage = "密码错误！";
+            String loginMode = request.getParameter(Constants.LOGIN_MODE);
+            if (Constants.LOGIN_MODE_PASSWORD.equals(loginMode)) {
+                errorMessage = "密码错误！";
+            } else if (Constants.LOGIN_MODE_SMS_VERIFICATION_CODE.equals(loginMode)) {
+                errorMessage = "验证码错误！";
+            }
         } else {
             errorMessage = exception.getMessage();
         }

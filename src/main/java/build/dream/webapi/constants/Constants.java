@@ -11,4 +11,6 @@ public class Constants extends build.dream.common.constants.Constants {
     public static final String AUTHENTICATED = "authenticated";
     public static final String PERMIT_ALL = "permitAll";
     public static final String HAS_AUTHORITY_FORMAT = "hasAuthority('%s')";
+
+    public static final String SMS_VERIFICATION_CODE_PREFIX = "_sms_verification_code";
 }
