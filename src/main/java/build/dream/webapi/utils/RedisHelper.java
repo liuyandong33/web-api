@@ -14,28 +14,30 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RedisHelper {
     public static RedisConnectionFactory createRedisConnectionFactory(RedisProperties redisProperties) {
         ClientResources clientResources = DefaultClientResources.create();
-        LettuceClientConfiguration clientConfig = getLettuceClientConfiguration(clientResources, redisProperties.getLettuce().getPool(), redisProperties);
-        return createLettuceConnectionFactory(clientConfig, redisProperties);
+        LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(clientResources, redisProperties);
+
+        RedisSentinelConfiguration redisSentinelConfiguration = getSentinelConfig(redisProperties);
+        if (redisSentinelConfiguration != null) {
+            return new LettuceConnectionFactory(redisSentinelConfiguration, lettuceClientConfiguration);
+        }
+
+        RedisClusterConfiguration redisClusterConfiguration = getClusterConfiguration(redisProperties);
+        if (redisClusterConfiguration != null) {
+            return new LettuceConnectionFactory(getClusterConfiguration(redisProperties), lettuceClientConfiguration);
+        }
+
+        return new LettuceConnectionFactory(getStandaloneConfig(redisProperties), lettuceClientConfiguration);
     }
 
-    private static LettuceConnectionFactory createLettuceConnectionFactory(LettuceClientConfiguration clientConfiguration, RedisProperties redisProperties) {
-        if (getSentinelConfig(redisProperties) != null) {
-            return new LettuceConnectionFactory(getSentinelConfig(redisProperties), clientConfiguration);
-        }
-        if (getClusterConfiguration(redisProperties) != null) {
-            return new LettuceConnectionFactory(getClusterConfiguration(redisProperties), clientConfiguration);
-        }
-        return new LettuceConnectionFactory(getStandaloneConfig(redisProperties), clientConfiguration);
-    }
-
-    private static LettuceClientConfiguration getLettuceClientConfiguration(ClientResources clientResources, RedisProperties.Pool pool, RedisProperties redisProperties) {
-        LettuceClientConfiguration.LettuceClientConfigurationBuilder builder = createBuilder(pool);
+    private static LettuceClientConfiguration getLettuceClientConfiguration(ClientResources clientResources, RedisProperties redisProperties) {
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder builder = createBuilder(redisProperties.getLettuce().getPool());
         applyProperties(builder, redisProperties);
         builder.clientResources(clientResources);
         return builder.build();
@@ -45,13 +47,17 @@ public class RedisHelper {
         if (redisProperties.isSsl()) {
             builder.useSsl();
         }
-        if (redisProperties.getTimeout() != null) {
-            builder.commandTimeout(redisProperties.getTimeout());
+
+        Duration timeout = redisProperties.getTimeout();
+        if (timeout != null) {
+            builder.commandTimeout(timeout);
         }
-        if (redisProperties.getLettuce() != null) {
-            RedisProperties.Lettuce lettuce = redisProperties.getLettuce();
-            if (lettuce.getShutdownTimeout() != null && !lettuce.getShutdownTimeout().isZero()) {
-                builder.shutdownTimeout(redisProperties.getLettuce().getShutdownTimeout());
+
+        RedisProperties.Lettuce lettuce = redisProperties.getLettuce();
+        if (lettuce != null) {
+            Duration shutdownTimeout = lettuce.getShutdownTimeout();
+            if (shutdownTimeout != null && !shutdownTimeout.isZero()) {
+                builder.shutdownTimeout(shutdownTimeout);
             }
         }
         return builder;
@@ -60,13 +66,15 @@ public class RedisHelper {
     private static RedisSentinelConfiguration getSentinelConfig(RedisProperties redisProperties) {
         RedisProperties.Sentinel sentinelProperties = redisProperties.getSentinel();
         if (sentinelProperties != null) {
-            RedisSentinelConfiguration config = new RedisSentinelConfiguration();
-            config.master(sentinelProperties.getMaster());
-            config.setSentinels(createSentinels(sentinelProperties));
-            if (redisProperties.getPassword() != null) {
-                config.setPassword(RedisPassword.of(redisProperties.getPassword()));
+            RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration();
+            redisSentinelConfiguration.master(sentinelProperties.getMaster());
+            redisSentinelConfiguration.setSentinels(createSentinels(sentinelProperties));
+
+            String password = redisProperties.getPassword();
+            if (password != null) {
+                redisSentinelConfiguration.setPassword(RedisPassword.of(password));
             }
-            return config;
+            return redisSentinelConfiguration;
         }
         return null;
     }
@@ -90,14 +98,17 @@ public class RedisHelper {
         if (clusterProperties == null) {
             return null;
         }
-        RedisClusterConfiguration config = new RedisClusterConfiguration(clusterProperties.getNodes());
-        if (clusterProperties.getMaxRedirects() != null) {
-            config.setMaxRedirects(clusterProperties.getMaxRedirects());
+        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(clusterProperties.getNodes());
+        Integer maxRedirects = clusterProperties.getMaxRedirects();
+        if (maxRedirects != null) {
+            redisClusterConfiguration.setMaxRedirects(maxRedirects);
         }
-        if (redisProperties.getPassword() != null) {
-            config.setPassword(RedisPassword.of(redisProperties.getPassword()));
+
+        String password = redisProperties.getPassword();
+        if (password != null) {
+            redisClusterConfiguration.setPassword(RedisPassword.of(password));
         }
-        return config;
+        return redisClusterConfiguration;
     }
 
     private static RedisStandaloneConfiguration getStandaloneConfig(RedisProperties redisProperties) {
