@@ -4,13 +4,13 @@ import build.dream.common.utils.CommonRedisUtils;
 import build.dream.common.utils.CustomDateUtils;
 import build.dream.webapi.constants.Constants;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class RedisTokenRepository implements PersistentTokenRepository {
@@ -41,7 +41,8 @@ public class RedisTokenRepository implements PersistentTokenRepository {
 
         CommonRedisUtils.hmset(tokenKey, tokenMap);
         CommonRedisUtils.expire(tokenKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
-        CommonRedisUtils.setex(seriesKey, tokenKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
+        CommonRedisUtils.sadd(seriesKey, tokenKey);
+        CommonRedisUtils.expire(seriesKey, TOKEN_VALIDITY_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
@@ -73,11 +74,8 @@ public class RedisTokenRepository implements PersistentTokenRepository {
     @Override
     public void removeUserTokens(String username) {
         String seriesKey = obtainRememberMeSeriesKey(username);
-        String tokenKey = CommonRedisUtils.get(seriesKey);
-        if (StringUtils.isBlank(tokenKey)) {
-            CommonRedisUtils.del(seriesKey);
-        } else {
-            CommonRedisUtils.del(seriesKey, tokenKey);
-        }
+        Set<String> deleteKeys = CommonRedisUtils.smembers(seriesKey);
+        deleteKeys.add(seriesKey);
+        CommonRedisUtils.del(deleteKeys.toArray(new String[]{}));
     }
 }
