@@ -10,10 +10,12 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class SessionRegistryImpl implements SessionRegistry, ApplicationListener<SessionDestroyedEvent> {
     private static final String SESSION_INFORMATION_PREFIX = "_session_information_";
     private static final String PRINCIPAL_PREFIX = "_principal_";
+    public static int MAX_INACTIVE_INTERVAL_IN_SECONDS = 1800;
 
     private String obtainPrincipalKey(String username) {
         return PRINCIPAL_PREFIX + username;
@@ -69,7 +71,10 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
         SessionInformation sessionInformation = getSessionInformation(sessionId);
         if (sessionInformation != null) {
             sessionInformation.refreshLastRequest();
-            CommonRedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
+            CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, SerializationUtils.serialize(sessionInformation));
+
+            WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
+            CommonRedisUtils.expire(obtainPrincipalKey(webUserDetails.getUsername()), MAX_INACTIVE_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
         }
     }
 
@@ -81,8 +86,13 @@ public class SessionRegistryImpl implements SessionRegistry, ApplicationListener
         }
 
         SessionInformation sessionInformation = new SessionInformation(principal, sessionId, new Date());
-        CommonRedisUtils.set(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), SerializationUtils.serialize(sessionInformation));
-        CommonRedisUtils.sadd(obtainPrincipalKey(webUserDetails.getUsername()), sessionId);
+        CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, SerializationUtils.serialize(sessionInformation));
+
+        String principalKey = obtainPrincipalKey(webUserDetails.getUsername());
+        CommonRedisUtils.sadd(principalKey, sessionId);
+
+        // 设置过期时间为session最大时间，防止session销毁事件没有接收到而导致一直留在redis中
+        CommonRedisUtils.expire(principalKey, MAX_INACTIVE_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
