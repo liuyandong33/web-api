@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class RedisTokenRepository implements PersistentTokenRepository {
+public class RedisTokenRepositoryImpl implements PersistentTokenRepository {
     private static final String REMEMBER_ME_TOKEN_PREFIX = "_remember_me_token_";
     private static final String REMEMBER_ME_SERIES_PREFIX = "_remember_me_series_";
-    private static final long TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7;
+    public static final int TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * 7;
 
     private String obtainRememberMeKey(String series) {
         return REMEMBER_ME_TOKEN_PREFIX + series;

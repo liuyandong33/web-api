@@ -12,10 +12,10 @@ import org.springframework.security.core.session.SessionRegistry;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class SessionRegistryImpl implements SessionRegistry, ApplicationListener<SessionDestroyedEvent> {
+public class RedisSessionRegistryImpl implements SessionRegistry, ApplicationListener<SessionDestroyedEvent> {
     private static final String SESSION_INFORMATION_PREFIX = "_session_information_";
     private static final String PRINCIPAL_PREFIX = "_principal_";
-    public static int MAX_INACTIVE_INTERVAL_IN_SECONDS = 1800;
+    public static final int MAX_INACTIVE_INTERVAL_IN_SECONDS = 1800;
 
     private String obtainPrincipalKey(String username) {
         return PRINCIPAL_PREFIX + username;

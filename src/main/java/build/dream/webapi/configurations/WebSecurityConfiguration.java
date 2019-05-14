@@ -1,8 +1,8 @@
 package build.dream.webapi.configurations;
 
 import build.dream.common.saas.domains.BackgroundPrivilege;
-import build.dream.webapi.auth.RedisTokenRepository;
-import build.dream.webapi.auth.SessionRegistryImpl;
+import build.dream.webapi.auth.RedisSessionRegistryImpl;
+import build.dream.webapi.auth.RedisTokenRepositoryImpl;
 import build.dream.webapi.auth.WebFilterInvocationSecurityMetadataSource;
 import build.dream.webapi.auth.WebUserDetailsService;
 import build.dream.webapi.constants.Constants;
@@ -75,14 +75,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler)
                 .and()
                 .rememberMe()
-                .tokenValiditySeconds(60 * 60 * 24 * 7)
+                .tokenValiditySeconds(RedisTokenRepositoryImpl.TOKEN_VALIDITY_SECONDS)
                 .userDetailsService(userDetailsService())
                 .tokenRepository(tokenRepository());
     }
 
     @Bean
     public SessionRegistry sessionRegistry() {
-        SessionRegistry sessionRegistry = new SessionRegistryImpl();
+        SessionRegistry sessionRegistry = new RedisSessionRegistryImpl();
         return sessionRegistry;
     }
 
@@ -158,7 +158,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PersistentTokenRepository tokenRepository() {
-        RedisTokenRepository redisTokenRepository = new RedisTokenRepository();
-        return redisTokenRepository;
+        PersistentTokenRepository tokenRepository = new RedisTokenRepositoryImpl();
+        return tokenRepository;
     }
 }
