@@ -32,7 +32,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.sql.DataSource;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,8 +55,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private AccessDeniedHandler accessDeniedHandler;
     @Autowired
     private PrivilegeService privilegeService;
-    @Autowired
-    private DataSource dataSource;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
