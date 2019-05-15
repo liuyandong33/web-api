@@ -26,8 +26,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.session.InvalidSessionStrategy;
-import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -43,10 +41,6 @@ import java.util.List;
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private WebUserDetailsService webUserDetailsService;
-    @Autowired
-    private InvalidSessionStrategy invalidSessionStrategy;
-    @Autowired
-    private SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
     @Autowired
     private AuthenticationSuccessHandler authenticationSuccessHandler;
     @Autowired
@@ -69,7 +63,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout().logoutUrl("/auth/logout").invalidateHttpSession(true).logoutSuccessUrl("/auth/index")
                 .and()
-                .sessionManagement().invalidSessionStrategy(invalidSessionStrategy).maximumSessions(1).maxSessionsPreventsLogin(true).expiredSessionStrategy(sessionInformationExpiredStrategy).sessionRegistry(sessionRegistry())
+                .sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true).sessionRegistry(sessionRegistry())
                 .and()
                 .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler)
