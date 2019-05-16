@@ -24,7 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -70,6 +69,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler)
                 .and()
                 .rememberMe()
+                .rememberMeParameter("rememberMe")
                 .tokenValiditySeconds(RedisTokenRepositoryImpl.TOKEN_VALIDITY_SECONDS)
                 .userDetailsService(webUserDetailsService)
                 .tokenRepository(tokenRepository());

@@ -22,7 +22,7 @@
             var loginMode = $("#loginMode").val();
             var params = {username: username, password: password, loginMode: loginMode};
             if ($("#rememberMe").prop("checked")) {
-                params["remember-me"] = "on";
+                params["rememberMe"] = true;
             }
             debugger
             $.post("/auth/login", params, function (result) {
@@ -42,7 +42,7 @@
             <option value="PASSWORD">密码</option>
             <option value="SMS_VERIFICATION_CODE">短信验证码</option>
         </select><br><br>
-        记住我：<input type="checkbox" name="remember-me" id="rememberMe"><br><br>
+        记住我：<input type="checkbox" name="rememberMe" id="rememberMe" value="true"><br><br>
         <input type="submit" value="登录">
     </form>
 
