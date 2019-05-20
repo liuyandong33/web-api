@@ -1,9 +1,9 @@
 package build.dream.webapi.auth;
 
 import build.dream.common.utils.CommonRedisUtils;
+import build.dream.common.utils.ObjectUtils;
 import build.dream.webapi.constants.Constants;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.SerializationUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.security.core.session.SessionInformation;
@@ -61,7 +61,7 @@ public class RedisSessionRegistryImpl implements SessionRegistry, ApplicationLis
     public SessionInformation getSessionInformation(String sessionId) {
         byte[] value = CommonRedisUtils.get(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8));
         if (ArrayUtils.isNotEmpty(value)) {
-            return (SessionInformation) SerializationUtils.deserialize(value);
+            return ObjectUtils.deserialize(value);
         }
         return null;
     }
@@ -71,7 +71,7 @@ public class RedisSessionRegistryImpl implements SessionRegistry, ApplicationLis
         SessionInformation sessionInformation = getSessionInformation(sessionId);
         if (sessionInformation != null) {
             sessionInformation.refreshLastRequest();
-            CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, SerializationUtils.serialize(sessionInformation));
+            CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, ObjectUtils.serialize(sessionInformation));
 
             WebUserDetails webUserDetails = (WebUserDetails) sessionInformation.getPrincipal();
             CommonRedisUtils.expire(obtainPrincipalKey(webUserDetails.getUsername()), MAX_INACTIVE_INTERVAL_IN_SECONDS, TimeUnit.SECONDS);
@@ -86,7 +86,7 @@ public class RedisSessionRegistryImpl implements SessionRegistry, ApplicationLis
         }
 
         SessionInformation sessionInformation = new SessionInformation(principal, sessionId, new Date());
-        CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, SerializationUtils.serialize(sessionInformation));
+        CommonRedisUtils.setex(obtainSessionInformationKey(sessionId).getBytes(Constants.CHARSET_UTF_8), MAX_INACTIVE_INTERVAL_IN_SECONDS, ObjectUtils.serialize(sessionInformation));
 
         String principalKey = obtainPrincipalKey(webUserDetails.getUsername());
         CommonRedisUtils.sadd(principalKey, sessionId);
