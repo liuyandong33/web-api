@@ -1,10 +1,10 @@
 package build.dream.webapi.auth;
 
 import build.dream.common.api.ApiRest;
+import build.dream.common.constants.ErrorConstants;
 import build.dream.common.exceptions.Error;
 import build.dream.common.utils.ApplicationHandler;
 import build.dream.common.utils.GsonUtils;
-import build.dream.webapi.constants.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
@@ -19,8 +19,12 @@ public class AccessDeniedHandler implements org.springframework.security.web.acc
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         if (ApplicationHandler.isAjax(request)) {
+            ApiRest apiRest = ApiRest.builder()
+                    .error(new Error(ErrorConstants.ERROR_CODE_ACCESS_DENIED, "不允许访问！"))
+                    .successful(false)
+                    .build();
             response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
-            response.getWriter().write(Constants.ACCESS_DENIED_ERROR_API_REST);
+            response.getWriter().write(GsonUtils.toJson(apiRest));
         } else {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter printWriter = response.getWriter();

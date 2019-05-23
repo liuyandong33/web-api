@@ -17,7 +17,7 @@ public class SmsController {
      *
      * @return
      */
-    @RequestMapping(value = "/sendVerificationCode", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/sendVerificationCode", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @ApiRestAction(modelClass = SendVerificationCodeModel.class, serviceClass = SmsService.class, serviceMethodName = "sendVerificationCode", error = "发送短信验证码")
     public String sendVerificationCode() {
